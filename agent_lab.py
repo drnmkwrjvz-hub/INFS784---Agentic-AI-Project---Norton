@@ -1,17 +1,22 @@
 import os
 import argparse
+import requests
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_openrouter import ChatOpenRouter
 from ddgs import DDGS
 from langchain.tools import tool
 
-# Load environment variables from .env
-load_dotenv()
+# Explicitly load .env from the script's directory
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
-# Verify API key is present
-if not os.getenv("OPENROUTER_API_KEY"):
-    raise ValueError("OPENROUTER_API_KEY must be set in your environment or .env file.")
+# Fallback: check if key is loaded, and forcefully set os.environ so the underlying openrouter client sees it
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key:
+    raise ValueError(f"OPENROUTER_API_KEY not found. Please check your .env file at {os.path.join(basedir, '.env')}")
+
+os.environ["OPENROUTER_API_KEY"] = api_key
 
 # Set up argument parsing for lab commands
 parser = argparse.ArgumentParser(description="Research AI Agent Lab")
@@ -19,10 +24,11 @@ parser.add_argument("--mode", default="basic", choices=["basic", "memory", "deep
 parser.add_argument("--prompt", default="Search for recent news about artificial intelligence milestones.", help="Prompt for the agent")
 args = parser.parse_args()
 
-# Configure OpenRouter model with the free endpoint
+# Configure OpenRouter model
 model_id = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 model = ChatOpenRouter(
     model=model_id,
+    api_key=api_key,
     temperature=0,
     timeout=120,
     max_tokens=1800,
