@@ -1,0 +1,14 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Python cache and build files
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Environment secrets and workspace output
+.env
+workspace/*
+!workspace/.gitkeep
